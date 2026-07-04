@@ -25,14 +25,20 @@ module.exports.renderLogin = (req, res) => {
 }
 
 module.exports.login = (req, res) => {
+        console.log("returnTo in locals:", res.locals.returnTo);
     req.flash('success', 'welcome back!');
-    const redirectUrl = req.session.returnTo || '/campgrounds';
+    const redirectUrl = res.locals.returnTo || '/campgrounds';
     delete req.session.returnTo;
+     console.log("Redirecting to:", redirectUrl);
     res.redirect(redirectUrl);
 }
 
 module.exports.logout = (req, res) => {
-    req.logout();
+    req.logout(function(err) {
+        if (err) {
+            return next(err);
+        }
+    })
     req.flash('success', "Goodbye!");
     res.redirect('/campgrounds');
 }
