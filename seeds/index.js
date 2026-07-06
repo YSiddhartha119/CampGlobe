@@ -31,12 +31,20 @@ const seedDB = async () => {
                     }
                     ],
             description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odio voluptatum odit non fugiat. Voluptatem corrupti asperiores accusamus illo ipsa molestiae voluptatibus! Maxime ipsum est ipsam maiores facere beatae libero commodi!',
-            price: price
+            price: price, 
+            geometry: {
+                type: "Point",
+                coordinates: [-113.1331, 47.0202]
+            },
         })
         await camp.save();
     }
 }
 
+
+
+
 seedDB().then(() => {
     mongoose.connection.close();
 })
+
