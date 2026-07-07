@@ -48,7 +48,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 const store = MongoStore.create({
     mongoUrl: dbUrl,
     crypto: {
-        secret: 'thisshouldbeabettersecret!'
+        secret: process.env.SESSION_SECRET || 'thisshouldbeabettersecret!'
     },
     touchAfter: 24 * 60 * 60
 });
@@ -60,12 +60,12 @@ store.on("error", function (e) {
 const sessionConfig = {
     store,
     name: 'session',
-    secret: 'thisshouldbeabettersecret!',
+    secret: process.env.SESSION_SECRET || 'thisshouldbeabettersecret!',
     resave: false,
     saveUninitialized: true,
     cookie: {
         httpOnly: true,
-        // secure: true,
+        secure: process.env.NODE_ENV === 'production',
         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
@@ -164,4 +164,9 @@ app.use((err, req, res, next) => {
 
 module.exports = app;
 
-
+if (process.env.NODE_ENV !== 'production') {
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+        console.log(`Serving on port ${port}`);
+    });
+}
