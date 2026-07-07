@@ -5,6 +5,7 @@ if (process.env.NODE_ENV !== "production") {
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const connectDB = require('./lib/mongodb');
 const ejsMate = require('ejs-mate');
 const { campgroundSchema, reviewSchema } = require('./schemas.js');
 const catchAsync = require('./utils/catchAsync');
@@ -23,16 +24,10 @@ const helmet = require('helmet');
 const { MongoStore } = require('connect-mongo');
 
 const dbUrl = process.env.DB_URL || 'mongodb://127.0.0.1:27017/camp-globe'
-mongoose.connect(dbUrl); 
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", () => {
-    console.log("Database connected");
-});
 
 const app = express();
 
@@ -43,6 +38,17 @@ app.set('views', path.join(__dirname, 'views'))
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')))
+
+// Ensure DB is connected before handling any request (critical for Vercel serverless)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB(dbUrl);
+        next();
+    } catch (err) {
+        console.error('DB connection failed:', err);
+        next(err);
+    }
+});
 
 
 const store = MongoStore.create({
