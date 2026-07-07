@@ -3,7 +3,7 @@ const cities = require('./cities');
 const { places, descriptors } = require('./seedHelpers');
 const Campground = require('../models/campground');
 
-mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp');
+mongoose.connect('mongodb://127.0.0.1:27017/camp-globe');
 
 const db = mongoose.connection;
 
@@ -22,19 +22,22 @@ const seedDB = async () => {
         const price = Math.floor(Math.random() * 20) + 10;
         const camp = new Campground({
             location: `${cities[random1000].city}, ${cities[random1000].state}`,
-            author: '6a462fc9ddd88248e8cd33a2',
+            author: '6a4ce5d9c7e8cfdaf78eadb9',
             title: `${sample(descriptors)} ${sample(places)}`,
             images: [
                     {
-                        url: 'https://res.cloudinary.com/k915psz1/image/upload/v1783093927/CampGlobe/kuhz8bi3ar2itmu0vjcx.jpg',
-                        filename: 'CampGlobe/kuhz8bi3ar2itmu0vjcx'
+                        url: 'https://res.cloudinary.com/k915psz1/image/upload/v1783093927/CampGlobe/fsyzaxzzgl6zc8xgxouf.jpg',
+                        filename: 'CampGlobe/fsyzaxzzgl6zc8xgxouf'
                     }
                     ],
             description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odio voluptatum odit non fugiat. Voluptatem corrupti asperiores accusamus illo ipsa molestiae voluptatibus! Maxime ipsum est ipsam maiores facere beatae libero commodi!',
             price: price, 
             geometry: {
                 type: "Point",
-                coordinates: [-113.1331, 47.0202]
+                coordinates: [
+                    cities[random1000].longitude,
+                    cities[random1000].latitude
+                ]
             },
         })
         await camp.save();
