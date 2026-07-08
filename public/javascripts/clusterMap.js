@@ -3,8 +3,11 @@ const map = new mapboxgl.Map({
     container: 'cluster-map',
     style: 'mapbox://styles/mapbox/dark-v10',
     center: [-103.59179687498357, 40.66995747013945],
-    zoom: 3
+    zoom: 3,
+    attributionControl: false   // removes the "Improve this map" edit link
 });
+// Add compact attribution without the edit link (keeps Mapbox ToS compliant)
+map.addControl(new mapboxgl.AttributionControl({ compact: true, customAttribution: '© Mapbox © OpenStreetMap' }));
 
 
 

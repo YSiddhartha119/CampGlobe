@@ -1,0 +1,112 @@
+<% layout('layout/boilerplate')%>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="row w-100">
+        <div class="col-md-6 offset-md-3 col-lg-4 offset-lg-4">
+            <div class="card shadow-lg border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: none;">
+                    <div style="font-size: 48px;">🏕️</div>
+                    <h4 class="text-white mb-1" style="font-weight: 700;">Verify Your Email</h4>
+                    <p class="mb-0" style="color: #a0aec0; font-size: 14px;">We sent a 6-digit code to</p>
+                    <p class="mb-0" style="color: #68d391; font-weight: 600; font-size: 14px;"><%= email %></p>
+                </div>
+                <div class="card-body p-4">
+                    <form action="/verify-email" method="POST" id="otp-form">
+                        <p class="text-center text-muted mb-3" style="font-size: 14px;">Enter the 6-digit OTP below</p>
+
+                        <!-- 6 individual OTP boxes -->
+                        <div class="d-flex justify-content-between mb-4" id="otp-boxes">
+                            <% for(let i = 0; i < 6; i++) { %>
+                            <input
+                                type="text"
+                                maxlength="1"
+                                class="otp-input form-control text-center"
+                                style="width: 48px; height: 56px; font-size: 24px; font-weight: bold; border-radius: 10px; border: 2px solid #e2e8f0; transition: border-color 0.2s;"
+                                inputmode="numeric"
+                                pattern="[0-9]"
+                                autocomplete="off"
+                            >
+                            <% } %>
+                            <!-- Hidden field that gets populated by JS -->
+                            <input type="hidden" name="otp" id="otp-value">
+                        </div>
+
+                        <button type="submit" class="btn btn-block w-100 py-2" id="verify-btn"
+                            style="background: linear-gradient(135deg, #48bb78, #38a169); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 16px;">
+                            Verify Email
+                        </button>
+                    </form>
+
+                    <hr class="my-3">
+
+                    <form action="/resend-otp" method="POST" class="text-center">
+                        <p class="text-muted mb-2" style="font-size: 13px;">Didn't receive the code?</p>
+                        <button type="submit" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">
+                            🔄 Resend OTP
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-advance between OTP boxes and combine into hidden field
+const inputs = document.querySelectorAll('.otp-input');
+const otpValue = document.getElementById('otp-value');
+const form = document.getElementById('otp-form');
+
+inputs.forEach((input, idx) => {
+    input.addEventListener('input', (e) => {
+        // Only allow digits
+        input.value = input.value.replace(/[^0-9]/g, '');
+        if (input.value && idx < inputs.length - 1) {
+            inputs[idx + 1].focus();
+        }
+        updateOTPValue();
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && idx > 0) {
+            inputs[idx - 1].focus();
+        }
+    });
+
+    // Allow pasting full OTP
+    input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+        pasted.split('').forEach((char, i) => {
+            if (inputs[i]) inputs[i].value = char;
+        });
+        if (inputs[pasted.length - 1]) inputs[pasted.length - 1].focus();
+        updateOTPValue();
+    });
+
+    // Highlight on focus
+    input.addEventListener('focus', () => {
+        input.style.borderColor = '#48bb78';
+        input.style.boxShadow = '0 0 0 3px rgba(72,187,120,0.15)';
+    });
+    input.addEventListener('blur', () => {
+        input.style.borderColor = '#e2e8f0';
+        input.style.boxShadow = 'none';
+    });
+});
+
+function updateOTPValue() {
+    otpValue.value = Array.from(inputs).map(i => i.value).join('');
+}
+
+form.addEventListener('submit', (e) => {
+    updateOTPValue();
+    if (otpValue.value.length !== 6) {
+        e.preventDefault();
+        inputs[0].style.borderColor = '#fc8181';
+        alert('Please enter all 6 digits.');
+    }
+});
+
+// Auto-focus first box
+inputs[0].focus();
+</script>
