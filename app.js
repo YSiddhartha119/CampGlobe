@@ -34,6 +34,10 @@ const User = require('./models/user');
 
 const app = express();
 
+// CRITICAL for Vercel: trust the proxy so Express knows requests come over HTTPS
+// Without this, secure:true cookies are never set because Express sees HTTP (not HTTPS)
+app.set('trust proxy', 1);
+
 app.engine('ejs', ejsMate)
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'))
@@ -68,8 +72,8 @@ const sessionConfig = {
     store,
     name: 'session',
     secret: process.env.SESSION_SECRET || 'thisshouldbeabettersecret!',
-    resave: false,
-    saveUninitialized: true,
+    resave: true,
+    saveUninitialized: false,
     cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -129,14 +133,8 @@ app.use(
 );
 
 
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
-
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
-
-// Ensure DB is connected before any route runs
+// Ensure DB is connected BEFORE passport.session() runs
+// passport.session() does a DB query (deserializeUser) and needs the connection ready
 app.use(async (req, res, next) => {
     try {
         await connectDB(dbUrl);
@@ -146,6 +144,13 @@ app.use(async (req, res, next) => {
         next(err);
     }
 });
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 // Override defaults with real values now that passport has run
 app.use((req, res, next) => {

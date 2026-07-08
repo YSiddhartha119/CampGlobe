@@ -11,12 +11,16 @@ module.exports.register = async (req, res, next) => {
         const registeredUser = await User.register(user, password);
         req.login(registeredUser, err => {
             if (err) return next(err);
-            req.flash('success', 'Welcome to Yelp Camp!');
-            res.redirect('/campgrounds');
+            req.flash('success', 'Welcome to CampGlobe!');
+            req.session.save(() => {
+                res.redirect('/campgrounds');
+            });
         })
     } catch (e) {
         req.flash('error', e.message);
-        res.redirect('/register');
+        req.session.save(() => {
+            res.redirect('/register');
+        });
     }
 }
 
@@ -25,12 +29,12 @@ module.exports.renderLogin = (req, res) => {
 }
 
 module.exports.login = (req, res) => {
-        console.log("returnTo in locals:", res.locals.returnTo);
-    req.flash('success', 'welcome back!');
+    req.flash('success', 'Welcome back!');
     const redirectUrl = res.locals.returnTo || '/campgrounds';
     delete req.session.returnTo;
-     console.log("Redirecting to:", redirectUrl);
-    res.redirect(redirectUrl);
+    req.session.save(() => {
+        res.redirect(redirectUrl);
+    });
 }
 
 module.exports.logout = (req, res, next) => {
@@ -38,7 +42,9 @@ module.exports.logout = (req, res, next) => {
         if (err) {
             return next(err);
         }
-    })
-    req.flash('success', "Goodbye!");
-    res.redirect('/campgrounds');
+        req.flash('success', 'Goodbye!');
+        req.session.save(() => {
+            res.redirect('/campgrounds');
+        });
+    });
 }
